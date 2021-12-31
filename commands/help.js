@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { Message } = require('discord.js');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -9,8 +8,22 @@ module.exports = {
 	async execute(interaction) {
         let guild = interaction.guild;
 
-        //help command try catch statement
-
+        const row = new MessageActionRow()
+		.addComponents(
+            new MessageButton()
+                .setCustomId('stats')
+                .setLabel('📈Stats')
+                .setStyle('SECONDARY'),
+            new MessageButton()
+                .setCustomId('info')
+                .setLabel('❓Info')
+                .setStyle('SECONDARY'),
+            new MessageButton()
+                .setCustomId('banana')
+                .setLabel('🍌Banana')
+                .setStyle('SECONDARY'),
+		);
+        
         try {
             const helpEmbed = new MessageEmbed()
             .setColor("#e2b714")
@@ -19,103 +32,55 @@ module.exports = {
                 guild.iconURL({ format: "png", dynamic: true, size: 256 })
             )
             .addFields(
-                {
-                name: "Personal Bests & Statistics:",
-                value: "React with 📈 for stats commands help",
-                },
-                {
-                name: "Server Info:",
-                value: "React with ❓ for server info commands help",
-                },
+                { name: "Personal Bests & Statistics:", value: "React with 📈 for stats commands help" },
+                { name: "Server Info:", value: "React with ❓ for server info commands help" },
                 { name: "Banana:", value: "React with 🍌 for banana commands help" }
             )
-            .setFooter("www.monkeytype.com");
+            .setFooter("www.monkeytype.com", guild.iconURL({ dynamic: true }));
 
-            var msg = await interaction.reply({ embeds: [helpEmbed], fetchReply: true });
+            interaction.reply({ embeds: [helpEmbed], components: [row] });
 
+            const filter = i => i.customId === 'stats' || i.customId === 'info' || i.customId === 'banana';
 
-            await msg.react("📈"); //stats
-            await msg.react("❓"); //server info
-            await msg.react("🍌"); //banana
+            const collector = interaction.channel.createMessageComponentCollector({ filter, time: 10000 });
 
-            const filter = (reaction) =>
-            ["📈", "❓", "🍌"].includes(reaction.emoji.name);
+            collector.on('collect', async i => {
+                if (i.customId === 'stats') {
+                    helpEmbed.fields = [];
+                    helpEmbed.setTitle("📈 Stats Help")
+                    .addFields(
+                        { name: "!pb", value: "Displays personal bests for worded and timed tests\nYou cannot view other users scores with this command" },
+                        { name: "!stats", value: "Displays the number of tests completed and total time typing\nYou cannot view other users score with this command" }
+                    );
 
-            var collected = await msg.awaitReactions({ filter, time: 10000, max:1 }); //one of the main changes of v13 was that most 'options' must be sent as sole objects
-            if (collected.size == 0){
-                interaction.reply("You didn't react in time for help!");
-                return console.log('dingus')
-            };
+                    await i.update({ embeds: [helpEmbed] });
+                } else if (i.customId === 'info') {
+                    helpEmbed.fields = [];
+                    helpEmbed.setTitle("❓ Server Info Help")
+                    .addFields({ name: "!inrole <role name>", value: "Displays number of members within the role queried" });
 
-            if (collected.find((v) => v.emoji.name === "📈")) {
-            helpEmbed.fields = [];
-            helpEmbed.setTitle("📈 Stats Help")
-            .addFields(
-                {
-                name: "!pb",
-                value:
-                    "Displays personal bests for worded and timed tests\nYou cannot view other users scores with this command",
-                },
-                {
-                name: "!stats",
-                value:
-                    "Displays the number of tests completed and total time typing\nYou cannot view other users score with this command",
+                    await i.update({ embeds: [helpEmbed] });
+                } else if (i.customId === 'banana') {
+                    helpEmbed.fields = [];
+                    helpEmbed.setTitle("🍌 Banana Help")
+                    .addFields(
+                        { name: "!banana", value: "Collects 1 banana on use\nOnly can be used once per day - because you know what they say!" },
+                        { name: "!bananatop", value: "Displays the biggest potassium hoarders serverwide!" },
+                        { name: "!donate", value: "Be a good friend and share your nanners with others! Format: !donate <@user> <amount>" },
+                        { name: "!bananaflip", value: "Bet your bananas in a coin flip! Format: !bananaflip <amount> <heads/tails>" },
+                        { name: "!bananajack", value: "Bet your bananas in a game of blackjack agaisnt George! Format: !bananajack <amount>" },
+                        { name: "!rps", value: "Go against George in a battle of Rock Paper Scissors! Format: !rps <amount>" }
+                    );
+
+                    await i.update({ embeds: [helpEmbed] });
                 }
-            );
+            });
 
-            await msg.edit({ embeds: [helpEmbed] }); //embeds must always be sent as a sole object
-            return; //do nothing
-            } else if (collected.find((v) => v.emoji.name === "❓")) {
-            helpEmbed.fields = [];
-            helpEmbed.setTitle("❓ Server Info Help")
-            .addFields({
-                name: "!inrole <role name>",
-                value: "Displays number of members within the role queried",
-            })
-            await msg.edit({ embeds: [helpEmbed] }); 
-            return; //do nothing
-            } else if (collected.find((v) => v.emoji.name === "🍌")) {
-            helpEmbed.fields = [];
-            helpEmbed.setTitle("🍌 Banana Help")
-            .addFields(
-                {
-                name: "!banana",
-                value:
-                    "Collects 1 banana on use\nOnly can be used once per day - because you know what they say!",
-                },
-                {
-                name: "!bananatop",
-                value: "Displays the biggest potassium hoarders serverwide!",
-                },
-                {
-                name: "!donate",
-                value:
-                    "Be a good friend and share your nanners with others! Format: !donate <@user> <amount>",
-                },
-                {
-                name: "!bananaflip",
-                value:
-                    "Bet your bananas in a coin flip! Format: !bananaflip <amount> <heads/tails>",
-                },
-                {
-                name: "!bananajack",
-                value:
-                    "Bet your bananas in a game of blackjack agaisnt George! Format: !bananajack <amount>",
-                },
-                {
-                name: "!rps",
-                value:
-                    "Go against George in a battle of Rock Paper Scissors! Format: !rps <amount>",
-                }
-            )
-            await msg.edit({ embeds: [helpEmbed] });
-            return; //do nothing
-            } else {
-            //do nothing
-            return;
-            }
+            collector.on('end', () => interaction.editReply({ embeds: [helpEmbed], components: [] }));
+
         } catch (error) {
-            interaction.reply(`:x: An error has occurred`); 
+            interaction.reply(':x: An error has occurred.')
         }
-    },
+        
+	},
 };
