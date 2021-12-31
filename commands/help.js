@@ -80,7 +80,7 @@ module.exports = {
 
         } catch (error) {
             interaction.reply(':x: An error has occurred.')
-        }
+        };
         
 	},
 };
