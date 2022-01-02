@@ -2,9 +2,11 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
 module.exports = {
-	data: new SlashCommandBuilder()
+    needMod: false,
+	data: 
+        new SlashCommandBuilder()
 		.setName('help')
-		.setDescription('Replies with helpful reinforcements.'),
+		.setDescription('Replies with helpful reinforcements.'),  
 	async execute(interaction) {
         let guild = interaction.guild;
 
